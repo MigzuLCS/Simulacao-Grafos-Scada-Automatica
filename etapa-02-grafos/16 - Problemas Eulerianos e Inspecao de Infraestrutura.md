@@ -187,7 +187,7 @@ Cada trecho de tubulação/galeria é bidirecional para a varredura do robô:
 flowchart TD
     Inicio([Início da Missão de Inspeção: Robô Acoplado na BASE-INSP]) --> Checagem{CLP & SCADA:\nTodos os vértices da\nmalha têm grau par?}
     Checagem -- Não --> Bloqueio([Alarme de Falha Estrutural:\nVértices Ímpares Detectados\nDisparar Rotina do Carteiro Chinês])
-    Checagem -- Sim --> Hierholzer[Executar Algoritmo de Hierholzer em O(|E|)\nGerar Trilha Fechada Ótima: d1 até d9]
+    Checagem -- Sim --> Hierholzer["Executar Algoritmo de Hierholzer em O(|E|)\nGerar Trilha Fechada Ótima: d1 até d9"]
     
     Hierholzer --> P1["1. Duto d1 (15.0m): BASE-INSP → FN-101\nVarredura da Galeria Mestre de Purga e Pressurização"]
     P1 --> P2["2. Duto d2 (8.5m): FN-101 → VIS-401\nVarredura do Túnel sob Calha ALIM-101 e Esteira EST-201"]
