@@ -129,12 +129,12 @@ flowchart TD
     Inicio([Início da Otimização 2-Opt]) --> Entrada["Entrada: Rota Hamiltoniana Inicial R\ngerada pelo Vizinho Mais Próximo (NN)"]
     Entrada --> Varredura["Iterar sobre todos os pares de arestas\nnão-adjacentes (i, j) da rota"]
     Varredura --> CalcDelta["Calcular Variação de Custo:\nΔ = w(v_i, v_j) + w(v_{i+1}, v_{j+1}) - [w(v_i, v_{i+1}) + w(v_j, v_{j+1})]"]
-    CalcDelta --> Decisao{Δ < 0 ?\nHouve redução\nda distância?}
+    CalcDelta --> Decisao{"Δ < 0 ?\nHouve redução\nda distância?"}
     Decisao -- Sim --> Inverter["Aplicar Troca 2-Opt:\nInverter segmento intermediário R[i+1 : j]\nR_novo = (v_1, ..., v_i, v_j, ..., v_{i+1}, v_{j+1}, ..., v_1)"]
     Inverter --> Varredura
-    Decisao -- Não --> MaisPares{Existem mais pares (i, j)\na testar?}
+    Decisao -- Não --> MaisPares{"Existem mais pares (i, j)\na testar?"}
     MaisPares -- Sim --> Varredura
-    MaisPares -- Não --> Fim([Convergência para Ótimo Local 2-Ótimo:\nCruzamentos Eliminados | Rota Mínima Consolidada])
+    MaisPares -- Não --> Fim(["Convergência para Ótimo Local 2-Ótimo:\nCruzamentos Eliminados | Rota Mínima Consolidada"])
 ```
 
 #### Diagrama de Reconexão e Eliminação de Cruzamento
