@@ -1,10 +1,8 @@
-name: Deploy Simulador to GitHub Pages
+name: Deploy simulações para o GitHub Pages
 
 on:
   push:
-    branches:
-      - main
-      - feature/prototipo-simulador-scada
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -17,23 +15,36 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verificações numéricas das Aulas 11-18 e do motor
+        run: |
+          node simulacao-grafos/tests/check.mjs
+          node simulacao-grafos/tests/plant.mjs
+
   deploy:
+    needs: test
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact (Pasta do Simulador)
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Montar o site (página inicial + as duas simulações)
+        run: |
+          mkdir _site
+          cp index.html _site/index.html
+          cp -r simulador _site/simulador
+          cp -r simulacao-grafos _site/simulacao-grafos
+          rm -rf _site/simulacao-grafos/tests
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: './simulador'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
+          path: ./_site
+      - id: deployment
         uses: actions/deploy-pages@v4
