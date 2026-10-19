@@ -6,10 +6,11 @@ import { EULER_NODES, EULER_EDGES, AGV_NODES, AGV_D } from './data.js';
 import { bigNum, toggleGroup, actionBtn, banner } from './widgets.js';
 
 const B = t => h('b', {}, t);
+const diff = () => h('div', { class: 'card plain' }, B('Euler'), ' = passar por todos os DUTOS (fácil, tempo linear)  |  ', B('Hamilton/TSP'), ' = passar por todos os POSTOS (difícil, fatorial; usa a heurística NN + 2-Opt, que reduz de 268 m para 218 m)');
 
 export function createTab3(app) {
   let view = 'euler';
-  const top = toggleGroup([['euler', '[Aula 16] Inspeção de Dutos — Circuito Euleriano'], ['tsp', '[Aula 17] Roteamento do AGV-01 — Ciclo Hamiltoniano (TSP)']], v => show(v || view), { cls: 'mid', wrapClass: 'topbtns', allowOff: false });
+  const top = toggleGroup([['euler', 'Aula 16 · Dutos: Circuito de Euler'], ['tsp', 'Aula 17 · AGV: Ciclo de Hamilton (TSP)']], v => show(v || view), { cls: 'mid', wrapClass: 'topbtns', allowOff: false });
   const body = h('div');
   const bn = banner();
   const el = h('div', {}, bn.el, top.el, body);
@@ -69,7 +70,7 @@ export function createTab3(app) {
       }, Math.round(4000 / Math.max(1, circuit.length)));
     }
     return {
-      el: h('div', { class: 'split' }, h('div', { class: 'viewport big' }, gv.svg), h('div', { class: 'col' }, nums, play, h('label', { class: 'chk card', style: { fontSize: '16px', fontWeight: 'bold' } }, chk, h('span', {}, 'Simular expansão com grau ímpar (+ duto d10 → Carteiro Chinês 117,5 m)')), info)),
+      el: h('div', { class: 'split' }, h('div', { class: 'viewport big' }, gv.svg), h('div', { class: 'col' }, nums, play, h('label', { class: 'chk card', style: { fontSize: '16px', fontWeight: 'bold' } }, chk, h('span', {}, 'Simular expansão com grau ímpar (+ duto d10 → Carteiro Chinês 117,5 m)')), info, diff())),
       onShow: build,
     };
   }
@@ -82,8 +83,6 @@ export function createTab3(app) {
     const tourEdges = (t, p = 't') => t.map((v, i) => ({ id: p + i, u: ids[v], v: ids[t[(i + 1) % t.length]], w: AGV_D[v][t[(i + 1) % t.length]] }));
     const key = e => [e.u, e.v].sort().join('|');
     const group = toggleGroup([['cross', '1. Rota Cruzada (268 m)'], ['nn', '2. Vizinho Mais Próximo — NN (218 m)'], ['2opt', '3. Aplicar 2-Opt (268 → 218 m | −50 m)'], ['mst', '4. Cota Inferior MST (143 m)']], m => apply(m || 'cross'), { allowOff: false });
-    const matrix = h('div');
-    clear(matrix).append(h('table', { class: 't matrix' }, h('thead', {}, h('tr', {}, h('th', {}, 'D [m]'), ids.map(i => h('th', {}, i)))), h('tbody', {}, AGV_D.map((r, i) => h('tr', {}, h('td', {}, ids[i]), r.map(x => h('td', {}, x)))))));
 
     function apply(m) {
       const c0 = A.tourCost(AGV_D, CROSS), opt = A.twoOpt(AGV_D, CROSS), bf = A.tspBrute(AGV_D), mst = A.mstWeight(AGV_D), eco = c0 - opt.cost;
@@ -117,7 +116,7 @@ export function createTab3(app) {
       gv.setGraph(ids, edges); gv.highlight(new Map([['LAB-CQ', 'done']]), es);
     }
     return {
-      el: h('div', { class: 'split' }, h('div', { class: 'col' }, h('div', { class: 'viewport big' }, gv.svg), h('div', { class: 'panel' }, matrix)), h('div', { class: 'col' }, group.el, nums, info)),
+      el: h('div', { class: 'split' }, h('div', { class: 'col' }, h('div', { class: 'viewport big' }, gv.svg)), h('div', { class: 'col' }, group.el, diff(), nums, info)),
       onShow() { if (!group.get()) group.set('cross'); apply(group.get()); },
       set(m) { group.set(m); apply(m); },
     };

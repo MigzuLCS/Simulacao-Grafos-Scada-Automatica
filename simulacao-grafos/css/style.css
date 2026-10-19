@@ -229,3 +229,20 @@ table.sl-table.compact { font-size: 15px; } table.sl-table.compact td { padding:
 table.sl-table { font-size: 23px; } table.sl-table th { font-size: 19px; } table.sl-table td { padding: 12px 12px; }
 table.sl-table.compact { font-size: 17px; } table.sl-table.compact td { padding: 7px 10px; } table.sl-table.compact th { font-size: 16px; }
 .sl-fala { font-size: 19px; } .sl-title { font-size: 36px; } .sl-sub { font-size: 20px; }
+
+/* ===== Revisão de simplificação ===== */
+#tabs .tab.hl { margin-left: 0; margin-right: 14px; }
+.card.mini { padding: 8px 12px; }
+.mini-t { font-weight: bold; font-size: 17px; color: #000080; }
+.mini-n { font-size: 22px; font-weight: bold; margin: 2px 0; }
+.mini-e { font-size: 15px; color: #333; }
+.card.plain { font-size: 17px; line-height: 1.45; }
+.card.plain > div { margin: 5px 0; }
+.sl-plain { font-size: 21px; font-weight: bold; color: #1a3d6b; background: #e6f0ff; border-left: 8px solid #1c4f9c; padding: 8px 14px; margin: -6px 0 14px; }
+.sl-fala { margin-top: 12px; font-size: 19px; }
+.sl-fp { margin: 6px 0; line-height: 1.4; }
+.sl-card { font-size: 21px; } .sl-card .cardtitle { font-size: 23px; }
+table.sl-table { font-size: 21px; } table.sl-table td { padding: 9px 12px; }
+table.sl-table.compact { font-size: 15px; } table.sl-table.compact td { padding: 6px 8px; }
+.sl-title { font-size: 32px; }
+table.sl-table td.k, table.sl-table td.num { white-space: nowrap; }

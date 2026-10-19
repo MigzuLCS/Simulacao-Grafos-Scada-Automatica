@@ -16,7 +16,7 @@ Os módulos ES não carregam por `file://`. Na raiz do repositório:
 python -m http.server 8000      # depois abra http://localhost:8000/simulacao-grafos/
 ```
 
-Links diretos: `#tab=0..3&mode=...&scale=20`. Modos — aba 0: `graus|balanco|matriz`; aba 1: `bfs|dfs|dijkstra|vazamento`; aba 2: `euler|cross|2opt|mst`; aba 3: `gm|gv|ge|fim`.
+Links diretos: `#slides` ou `#slides=N`; `#tab=1..4&mode=...&scale=20` (aba 0 = slides). Modos — aba 1: `graus|balanco|matriz`; aba 2: `bfs|dfs|dijkstra|vazamento`; aba 3: `euler|cross|nn|2opt|mst`; aba 4: `gm|gv|ge`.
 
 ## Testes
 ```bash

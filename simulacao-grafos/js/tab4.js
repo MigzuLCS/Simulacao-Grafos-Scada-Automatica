@@ -4,8 +4,6 @@ import { GraphView } from './graphview.js';
 import * as A from './algorithms.js';
 import { gmGraph, gvGraph, geGraph } from './graphs.js';
 import { GM_POS, GV_POS, GE_POS, GV_VIAGENS } from './data.js';
-import { conformidade } from './validation.js';
-import { aula18Assertions } from './assertions.js';
 import { bigNum, toggleGroup, actionBtn, banner } from './widgets.js';
 import { h as H } from './dom.js';
 
@@ -25,13 +23,12 @@ export function createTab4(app) {
   let layer = 'gm';
   const bn = banner(), B = t => h('b', {}, t);
   const top = toggleGroup([
-    ['gm', '[Camada G_M] Fluxo de Materiais e Kahn (28 nós)'],
-    ['gv', '[Camada G_V] Circulação de Caminhões (9 nós)'],
-    ['ge', '[Camada G_E] Alocação de Estoque (Galpão B)'],
-    ['fim', '[Resumo Final] Validação 100% Aprovada (Aulas 11–18)'],
+    ['gm', '1. Fluxo de Materiais (G_M)'],
+    ['gv', '2. Pátio de Caminhões (G_V)'],
+    ['ge', '3. Galpão de Estoque (G_E)'],
   ], v => show(v || layer), { cls: 'mid', wrapClass: 'topbtns', allowOff: false });
   const body = h('div');
-  const L = { gm: gm(), gv: gv(), ge: ge(), fim: fim() };
+  const L = { gm: gm(), gv: gv(), ge: ge() };
   function show(v) { layer = v; top.set(v); clear(body).append(L[v].el); L[v].onShow(); }
   show('gm');
   return { el: h('div', {}, bn.el, top.el, body), setMode: m => { const [a, b] = m.split(':'); show(a); b && L[a].set && L[a].set(b); }, onPlantReplaced() {}, onShow() { L[layer].onShow(); }, update() {} };
@@ -73,6 +70,7 @@ export function createTab4(app) {
         info.textContent = 'Fluxo normal sem reciclo: DAG de 28 vértices e 29 arcos';
       }
       view.highlight(nodes, edges, text);
+      g.edges.forEach(e => { if (!edges.has(e.id)) view.setEdgeLabel(e.id, ''); });   // só os pesos do trecho destacado
     }
     sync();
     return { el: h('div', { class: 'split' }, h('div', { class: 'viewport big' }, view.svg), h('div', { class: 'col' }, h('div', { class: 'btns' }, bSeg, bTc, bRec), nums, info)), onShow() { draw(); }, set(m) { mode = m; sync(); draw(); } };
@@ -117,22 +115,5 @@ export function createTab4(app) {
         h('div', { class: 'bignums' }, r.map(x => bigNum(x.pos, `${x.custo} m`, x.palete === 1 ? 'y' : ''))));
     }
     return { el: h('div', { class: 'split' }, h('div', { class: 'viewport big' }, view.svg), out), onShow: draw };
-  }
-
-  /* ============================================================ Resumo final */
-  function fim() {
-    const el = h('div', { class: 'col' });
-    return {
-      el, onShow() {
-        bn.set(B('Validação formal'), ' — selos verdes: todas as conferências numéricas e asserções da Aula 18 passaram.');
-        const rows = conformidade(), as = aula18Assertions(), okR = rows.filter(r => r.ok).length, okA = as.filter(a => a.ok).length;
-        clear(el).append(
-          h('div', { style: { display: 'flex', gap: '10px', flexWrap: 'wrap' } },
-            h('div', { class: 'seal' + (okR === rows.length ? '' : ' bad') }, h('b', {}, `${okR}/${rows.length}`), h('span', {}, 'Conferências numéricas', h('br'), okR === rows.length ? 'OK' : 'divergência')),
-            h('div', { class: 'seal' + (okA === as.length ? '' : ' bad') }, h('b', {}, `${okA}/${as.length}`), h('span', {}, 'Asserções formais', h('br'), okA === as.length ? 'OK' : 'divergência'))),
-          h('div', { class: 'panel' }, h('table', { class: 't' }, h('thead', {}, h('tr', {}, ['Aula', 'Grandeza', 'Impresso na aula', 'Calculado agora', ''].map(x => h('th', {}, x)))),
-            h('tbody', {}, rows.map(r => h('tr', { class: r.ok ? 'good' : 'bad' }, h('td', {}, r.a), h('td', {}, r.n), h('td', {}, r.e), h('td', {}, r.c), h('td', {}, r.ok ? '✓' : '✗')))))));
-      },
-    };
   }
 }
