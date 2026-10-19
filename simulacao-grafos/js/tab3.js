@@ -3,15 +3,18 @@ import { h, clear, f1, s } from './dom.js';
 import { GraphView } from './graphview.js';
 import * as A from './algorithms.js';
 import { EULER_NODES, EULER_EDGES, AGV_NODES, AGV_D } from './data.js';
-import { bigNum, toggleGroup, actionBtn } from './widgets.js';
+import { bigNum, toggleGroup, actionBtn, banner } from './widgets.js';
+
+const B = t => h('b', {}, t);
 
 export function createTab3(app) {
   let view = 'euler';
   const top = toggleGroup([['euler', '[Aula 16] Inspeção de Dutos — Circuito Euleriano'], ['tsp', '[Aula 17] Roteamento do AGV-01 — Ciclo Hamiltoniano (TSP)']], v => show(v || view), { cls: 'mid', wrapClass: 'topbtns', allowOff: false });
   const body = h('div');
-  const el = h('div', {}, top.el, body);
+  const bn = banner();
+  const el = h('div', {}, bn.el, top.el, body);
   const E = euler(), T = tsp();
-  function show(v) { view = v; top.set(v); clear(body).append(v === 'euler' ? E.el : T.el); (v === 'euler' ? E : T).onShow(); }
+  function show(v) { view = v; if (v === 'euler') bn.set(B('Euler: percorre ARESTAS 1 vez — O(|E|), classe P'), ' (vermelho: nó de grau ímpar; amarelo: aresta já percorrida). Hamilton/TSP percorre VÉRTICES — O(n!), NP-difícil.'); top.set(v); clear(body).append(v === 'euler' ? E.el : T.el); (v === 'euler' ? E : T).onShow(); }
   show('euler');
   return { el, setMode: m => { if (m === 'euler' || m === 'tsp') show(m); else { show('tsp'); T.set(m); } }, onPlantReplaced() {}, onShow() { (view === 'euler' ? E : T).onShow(); }, update() {} };
 
@@ -78,17 +81,29 @@ export function createTab3(app) {
     const CROSS = [0, 1, 2, 3, 5, 4], nums = h('div', { class: 'bignums' }), info = h('div', { class: 'card line' });
     const tourEdges = (t, p = 't') => t.map((v, i) => ({ id: p + i, u: ids[v], v: ids[t[(i + 1) % t.length]], w: AGV_D[v][t[(i + 1) % t.length]] }));
     const key = e => [e.u, e.v].sort().join('|');
-    const group = toggleGroup([['cross', '1. Rota com Cruzamento (268 m)'], ['2opt', '2. Aplicar 2-Opt — Descruzar Rota (218 m | −50 m)'], ['mst', '3. Cota Inferior MST (143 m)']], m => apply(m || 'cross'), { allowOff: false });
+    const group = toggleGroup([['cross', '1. Rota Cruzada (268 m)'], ['nn', '2. Vizinho Mais Próximo — NN (218 m)'], ['2opt', '3. Aplicar 2-Opt (268 → 218 m | −50 m)'], ['mst', '4. Cota Inferior MST (143 m)']], m => apply(m || 'cross'), { allowOff: false });
     const matrix = h('div');
     clear(matrix).append(h('table', { class: 't matrix' }, h('thead', {}, h('tr', {}, h('th', {}, 'D [m]'), ids.map(i => h('th', {}, i)))), h('tbody', {}, AGV_D.map((r, i) => h('tr', {}, h('td', {}, ids[i]), r.map(x => h('td', {}, x)))))));
 
     function apply(m) {
       const c0 = A.tourCost(AGV_D, CROSS), opt = A.twoOpt(AGV_D, CROSS), bf = A.tspBrute(AGV_D), mst = A.mstWeight(AGV_D), eco = c0 - opt.cost;
       let edges, es = new Map();
-      if (m === 'cross') {
+      const nn = A.nearestNeighbor(AGV_D, 0);
+      bn.set(...({
+        cross: [B('Hamilton/TSP: cada VÉRTICE 1 vez — O(n!), NP-difícil'), ' (Euler: arestas, O(|E|), classe P). Amarelo: rota com cruzamento, 268 m.'],
+        nn: [B('Heurística gulosa NN'), ' — sempre vai ao vizinho mais próximo ainda não visitado; amarelo: rota de 218 m, sem cruzamento.'],
+        '2opt': [B('2-Opt: troca 2 arestas que se cruzam'), ' — amarelo: rota nova (218 m); tracejado vermelho: arestas removidas do cruzamento.'],
+        mst: [B('MST ≤ ótimo'), ' — amarelo: árvore geradora mínima (143 m), cota inferior para o ciclo ótimo de 218 m.'],
+      })[m]);
+      if (m === 'nn') {
+        edges = tourEdges(nn.tour); edges.forEach(e => es.set(e.id, 'path'));
+        clear(nums).append(bigNum('Rota NN', `${nn.cost} m`, 'y'), bigNum('Euler O(|E|)', 'classe P', 'c'), bigNum('Hamilton O(n!)', 'NP-difícil', 'r'));
+        info.textContent = `NN a partir de ${ids[0]} = ótimo global (força bruta: ${bf.count} rotas, ${bf.best.c} m)`;
+      } else if (m === 'cross') {
         edges = tourEdges(CROSS); edges.forEach(e => es.set(e.id, 'path'));
         clear(nums).append(bigNum('Rota 0→1→2→3→5→4→0', `${c0} m`, 'y'));
         info.textContent = 'VIS-401 → SILO-702 e SILO-701 → LAB-CQ se cruzam';
+        nums.append(bigNum('Euler O(|E|)', 'classe P', 'c'), bigNum('Hamilton O(n!)', 'NP-difícil', 'r'));
       } else if (m === '2opt') {
         const novo = tourEdges(opt.tour, 'n'), keep = new Set(novo.map(key)), rem = tourEdges(CROSS, 'x').filter(e => !keep.has(key(e)));
         edges = [...novo, ...rem]; novo.forEach(e => es.set(e.id, 'path')); rem.forEach(e => es.set(e.id, 'blocked'));
@@ -103,7 +118,7 @@ export function createTab3(app) {
     }
     return {
       el: h('div', { class: 'split' }, h('div', { class: 'col' }, h('div', { class: 'viewport big' }, gv.svg), h('div', { class: 'panel' }, matrix)), h('div', { class: 'col' }, group.el, nums, info)),
-      onShow() { if (!group.get()) { group.set('cross'); apply('cross'); } },
+      onShow() { if (!group.get()) group.set('cross'); apply(group.get()); },
       set(m) { group.set(m); apply(m); },
     };
   }

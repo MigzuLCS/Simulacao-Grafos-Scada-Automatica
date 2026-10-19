@@ -179,3 +179,14 @@ table.matrix td:first-child, table.matrix th:first-child { text-align: left; whi
 @media (max-width: 1100px) { .split { grid-template-columns: 1fr; } }
 
 #toolbar .btn { font-size: 14px; padding: 6px 14px; }
+
+/* Faixa didática (cada aba) */
+.banner { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; padding: 8px 14px; font-size: 16px; line-height: 1.35; background: #fff8c6; color: #000; border: 2px solid; border-color: #fff var(--chassis-dark) var(--chassis-dark) #fff; border-left: 8px solid #c98a00; }
+.banner .bn-ic { font-weight: bold; font-size: 20px; color: #c98a00; }
+.banner b { color: #000080; }
+.rota { font-family: var(--mono); font-size: 14px; line-height: 1.5; }
+.rota div { margin: 2px 0; }
+.rota .k { display: inline-block; min-width: 110px; font-weight: bold; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { padding: 1px 7px; font-family: var(--mono); font-size: 13px; border: 1px solid #000; background: #bfe3bf; }
+.tag.no { background: #f3b9b9; }

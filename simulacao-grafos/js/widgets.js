@@ -18,3 +18,10 @@ export function actionBtn(label, onClick, color = 'blue') {
   b.setOn = v => b.classList.toggle('on', v);
   return b;
 }
+
+/** Faixa didática no topo da aba: uma frase curta que muda com o modo (equação ativa + significado das cores). */
+export function banner() {
+  const el = h('div', { class: 'banner' }), tx = h('span', {});
+  el.append(h('span', { class: 'bn-ic' }, 'ℹ'), tx);
+  return { el, set(...parts) { tx.replaceChildren(...parts); } };
+}

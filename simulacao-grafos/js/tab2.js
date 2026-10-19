@@ -3,7 +3,7 @@ import { h, clear, f0, f1, fsign } from './dom.js';
 import { PlantView } from './plantview.js';
 import { NODES, EDGES } from './data.js';
 import * as A from './algorithms.js';
-import { bigNum, toggleGroup, actionBtn } from './widgets.js';
+import { bigNum, toggleGroup, actionBtn, banner } from './widgets.js';
 
 const LAYER_COLORS = ['#ff4d4d', '#ffff00', '#7CFC00', '#00ffff', '#ff9bf5'];
 const short = id => id.replace('-', '');
@@ -21,7 +21,16 @@ export function createTab2(app) {
     ['dijkstra', '[Aula 14] Dijkstra — Menor Caminho e Bloqueio (w = ∞)'],
     ['vazamento', '[Aula 15] Simular Vazamento na Esteira e3 (−150 kg/h)'],
   ], m => apply(m));
-  const el = h('div', { class: 'split' }, h('div', { class: 'col' }, h('div', { class: 'viewport big' }, view.svg), strip), h('div', { class: 'col' }, group.el, out));
+  const bn = banner();
+  const el = h('div', {}, bn.el, h('div', { class: 'split' }, h('div', { class: 'col' }, h('div', { class: 'viewport big' }, view.svg), strip), h('div', { class: 'col' }, group.el, out)));
+  bn.set('Escolha um algoritmo: cada cor do sinótico indica o que ele já visitou.');
+
+  // Pontes (Aula 15): arestas cuja remoção desconecta o grafo não-dirigido subjacente
+  const connected = skip => { const seen = new Set([g.nodes[0]]), st = [g.nodes[0]]; while (st.length) { const u = st.pop(); for (const e of g.edges) { if (e.id === skip || e.id === 'e14') continue; const v = e.u === u ? e.v : e.v === u ? e.u : null; if (v && !seen.has(v)) { seen.add(v); st.push(v); } } } return seen.size === g.nodes.length; };
+  const bridges = new Set(g.edges.filter(e => e.id !== 'e14' && !connected(e.id)).map(e => e.id));   // linha principal, sem o reciclo e14
+  // t_dec: tempo real de uma decisão de roteamento (Dijkstra completo), média de 300 execuções
+  const tDec = () => { const n = 300, t0 = performance.now(); for (let i = 0; i < n; i++) A.dijkstra(g, 'FN-101'); return (performance.now() - t0) / n; };
+  const fmtMs = x => x < 0.01 ? '< 0,01' : x.toFixed(2).replace('.', ',');
   let live = () => {};
 
   function clean() {
@@ -39,6 +48,7 @@ export function createTab2(app) {
   /* ---------------------------------------------------- BFS a partir de DIV-501 */
   function bfsMode() {
     resetPlant();
+    bn.set(h('b', {}, 'BFS: menor nº de saltos'), ' a partir de DIV-501 — cada cor é uma camada; o trip se propaga nessa ordem.');
     const r = A.bfs(g, 'DIV-501', new Set(['e14'])), maxL = Math.max(...Object.values(r.dist));
     let shown = -1;
     const draw = () => {
@@ -57,6 +67,7 @@ export function createTab2(app) {
   /* ---------------------------------------------------- DFS: ciclo e ordem topológica */
   function dfsMode() {
     resetPlant();
+    bn.set(h('b', {}, 'DFS: tempos d/f em cada nó'), ' — vermelho: aresta de retorno (e14) que fecha o ciclo; verde: demais arestas. Fechando XV-104 o grafo vira DAG e a ordem topológica existe.');
     const orders = h('div', { class: 'chips' }), headline = h('div', { class: 'card line' });
     const chk = h('input', { type: 'checkbox', checked: true, onChange: ev => { e14open = ev.target.checked; app.plant.setRecycle(e14open); draw(); } });
     e14open = true; app.plant.setRecycle(true);
@@ -77,37 +88,61 @@ export function createTab2(app) {
     out.append(headline, h('label', { class: 'chk card', style: { fontSize: '16px', fontWeight: 'bold' } }, chk, h('span', {}, 'XV-104 aberta (e14 presente)')), h('div', { class: 'card' }, orders));
   }
 
-  /* ---------------------------------------------------- Dijkstra e bloqueio de e11 */
+  /* ---------------------------------------------------- Dijkstra, pontes e reciclo */
   function dijkstraMode() {
     resetPlant();
-    let blocked = false;
-    const nums = h('div', { class: 'bignums' }), status = h('div', { class: 'card line' });
+    let blocked = false, reciclo = true;
+    app.plant.setRecycle(true);
+    const nums = h('div', { class: 'bignums' }), status = h('div', { class: 'card line' }), rotas = h('div', { class: 'card rota' }), kpi = h('div', { class: 'card' }), pontes = h('div', { class: 'card' });
     const btn = actionBtn('Fechar XV-701 (Silo A cheio 95 %)', () => {
       blocked = !blocked;
       if (blocked) app.plant.setSiloLevel('SILO-701', 0.96);
-      else { app.reset(); }
+      else { app.reset(); app.plant.setRecycle(reciclo); }
       btn.setOn(blocked); btn.textContent = blocked ? 'Reabrir XV-701 e restabelecer a planta' : 'Fechar XV-701 (Silo A cheio 95 %)'; draw();
     }, 'red');
+    const btnRec = actionBtn('Reciclo e14', () => { reciclo = !reciclo; app.plant.setRecycle(reciclo); draw(); }, 'green');
     function draw() {
-      const bl = blocked ? new Set(['e11']) : new Set(), r = A.dijkstra(g, 'FN-101', bl), text = {}, nodes = new Map(), edges = new Map();
+      const bl = blocked ? new Set(['e11']) : new Set(), r = A.dijkstra(g, 'FN-101', bl), text = {}, nodes = new Map(), edges = new Map(), SIL = ['SILO-701', 'SILO-702', 'SILO-703'];
       for (const n of NODES) text[n.id] = isFinite(r.dist[n.id]) ? `${f1(r.dist[n.id])} m` : '∞';
-      ['SILO-701', 'SILO-702', 'SILO-703'].forEach(s => nodes.set(s, isFinite(r.dist[s]) ? 'done' : 'bad'));
+      SIL.forEach(x => {
+        nodes.set(x, isFinite(r.dist[x]) ? 'done' : 'bad');
+        const p = isFinite(r.dist[x]) ? A.pathTo(r.parent, x) : null;
+        if (p) for (let i = 0; i < p.length - 1; i++) edges.set(g.edges.find(e => e.u === p[i] && e.v === p[i + 1]).id, 'visit');   // trilha do caminho mínimo
+      });
       if (blocked) edges.set('e11', 'bad');
+      if (reciclo) edges.set('e14', 'mark');
       view.setHighlight(nodes, edges); view.setNodeText(text);
+      bn.set(h('b', {}, 'Dijkstra: dist[v] mínima a partir de FN-101'), blocked ? ' — vermelho: e11 com w = ∞ (XV-701 fechada): Silo A inalcançável → TRIP.' : ' — amarelo: trilha do caminho mínimo até cada silo; verde: silos alcançados; rosa: reciclo e14.');
       clear(nums).append(bigNum('Silo B', `${f1(r.dist['SILO-702'])} m`, 'y'), bigNum('Silo C', `${f1(r.dist['SILO-703'])} m`, ''), bigNum('Silo A', isFinite(r.dist['SILO-701']) ? `${f1(r.dist['SILO-701'])} m` : '∞', isFinite(r.dist['SILO-701']) ? '' : 'r'));
       status.textContent = blocked ? 'w(e11) = ∞  →  SILO-701 isolado: dist = ∞' : 'Distâncias a partir de FN-101';
+      // (a) vetor de predecessores / rota ativa completa
+      const rota = x => { const p = isFinite(r.dist[x]) ? A.pathTo(r.parent, x) : null; return p ? p.map(short).join(' → ') : '— (inalcançável)'; };
+      clear(rotas).append(h('div', { class: 'cardtitle' }, 'Rota ativa · predecessores π[v]'),
+        ...SIL.map(x => h('div', {}, h('span', { class: 'k' }, `π ${short(x)}`), rota(x))));
+      // (b) latência de decisão
+      const t = tDec();
+      clear(kpi).append(h('div', { class: 'cardtitle' }, 'Latência de decisão (IEC 61511)'),
+        h('div', { class: 'bignums' }, bigNum('t_dec (medido)', `≈ ${fmtMs(t)} ms`, 'c'), bigNum('t_atuador', '1 – 3 s', 'y')),
+        h('div', { style: { fontSize: '14px', marginTop: '4px' } }, `t_dec ≈ ${fmtMs(t)} ms ≪ t_atuador 1–3 s: o cálculo nunca é o gargalo da segurança.`));
+      // (d) pontes e reciclo
+      clear(pontes).append(h('div', { class: 'cardtitle' }, 'Pontes (Aula 15)'),
+        h('div', { class: 'tags' }, ...g.edges.map(e => h('span', { class: 'tag', style: { background: bridges.has(e.id) ? '#f3b9b9' : '#bfe3bf' } }, e.id + (bridges.has(e.id) ? ' ponte' : ' reciclo')))),
+        h('div', { style: { fontSize: '14px', marginTop: '6px', lineHeight: '1.4' } }, `Na linha principal e1…e13 são todas pontes (${bridges.size} de 13): perder qualquer uma isola a jusante — fechar XV-701 (e11) exige TRIP de emergência. Só o reciclo e14 (XV-104) oferece desvio: com o Silo B cheio, devolve o fluxo à peneira.`));
+      btnRec.textContent = reciclo ? 'Reciclo e14 (XV-104): ABERTO — fechar' : 'Reciclo e14 (XV-104): FECHADO — abrir';
+      btnRec.setOn(reciclo);
     }
     draw();
     live = () => {
       const p = app.plant;
       if (blocked) status.textContent = p.state === 'TRIP' ? `w(e11) = ∞ → dist(SILO-701) = ∞ → TRIP: c_ALIM = 0` : 'w(e11) = ∞ → SILO-701 isolado: CALHA-701 enchendo…';
     };
-    out.append(nums, status, btn);
+    out.append(h('div', { class: 'btns' }, btn, btnRec), nums, status, rotas, kpi, pontes);
   }
 
   /* ---------------------------------------------------- vazamento em e3 e entupimento de e12 */
   function leakMode() {
     resetPlant();
+    bn.set(h('b', {}, 'r = B·Q − S'), ' — vermelho: nó EST-201 e aresta e3, onde o resíduo não-nulo localiza o vazamento (+150 kg/h).');
     const p0 = app.plant; p0.setLeak('e3', 150); app.fastForward(200);
     let entupida = false;
     const big = h('span', { class: 'io xl r' }, ''), sub = h('div', { class: 'bignums' }), info = h('div', { class: 'card line' });
