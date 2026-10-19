@@ -5,6 +5,7 @@ import { createTab1 } from './tab1.js';
 import { createTab2 } from './tab2.js';
 import { createTab3 } from './tab3.js';
 import { createTab4 } from './tab4.js';
+import { createSlides } from './slides.js';
 
 const app = {
   plant: new Plant(), scale: 5, paused: false, tabs: [], active: 0,
@@ -24,6 +25,7 @@ const TITLES = [
   'Integrante 2 · Busca, Dijkstra e Falhas (Aulas 13–15)',
   'Integrante 3 · Euler e AGV / TSP (Aulas 16–17)',
   'Integrante 4 · Logística e Validação (Aula 18)',
+  '▶ Apresentação (10 Slides)',
 ];
 const SPEEDS = [['⏸ Pausa', 0], ['1×', 1], ['5×', 5], ['20×', 20]];
 const T = {};
@@ -37,7 +39,7 @@ function buildToolbar() {
 }
 function renderTabs() {
   const t = $('#tabs'); clear(t);
-  TITLES.forEach((x, i) => t.append(h('button', { class: 'tab' + (i === app.active ? ' active' : ''), role: 'tab', 'aria-selected': i === app.active, onClick: () => app.goto(i) }, x)));
+  TITLES.forEach((x, i) => t.append(h('button', { class: 'tab' + (i === 4 ? ' hl' : '') + (i === app.active ? ' active' : ''), role: 'tab', 'aria-selected': i === app.active, onClick: () => app.goto(i) }, x)));
 }
 function updateBars() {
   const p = app.plant, st = p.state;
@@ -65,12 +67,13 @@ function frame(now) {
 
 /* ---------------------------------------------------------------- inicialização */
 app.plant.quickStart(); app.fastForward(300);
-app.tabs = [createTab1(app), createTab2(app), createTab3(app), createTab4(app)];
+app.tabs = [createTab1(app), createTab2(app), createTab3(app), createTab4(app), createSlides(app)];
 const host = $('#screens');
 app.tabs.forEach(t => { t.root = h('div', { class: 'screen' }, t.el); host.append(t.root); });
 buildToolbar(); renderTabs();
-const qs = new URLSearchParams(location.hash.slice(1));          // links diretos: #tab=1&mode=bfs&scale=20  (tab = 0..3)
+const qs = new URLSearchParams(location.hash.slice(1));          // links diretos: #tab=1&mode=bfs&scale=20  (tab = 0..3; tab 4 / #slides = apresentação)
 if (qs.get('scale')) app.scale = +qs.get('scale');
+if (qs.has('slides')) { qs.set('tab', '4'); if (qs.get('slides')) qs.set('mode', qs.get('slides')); }   // #slides  ou  #slides=3
 app.goto(qs.has('tab') ? +qs.get('tab') : 0);
 if (qs.get('mode')) app.tabs[app.active].setMode(qs.get('mode'));
 if (qs.get('act')) document.querySelectorAll('#screens .screen.active .btn.mid')[+qs.get('act') - 1]?.click();   // clica no n-ésimo botão de ação (para testes)

@@ -32,3 +32,7 @@ node simulacao-grafos/tests/plant.mjs   # 23 verificações do motor (regime nom
 | `js/plant.js` | Motor: lotes de massa por aresta, intertravamentos, alarmes, instrumentos |
 | `js/plantview.js`, `js/graphview.js`, `js/widgets.js` | Desenho SVG e componentes |
 | `js/tab1.js` … `js/tab4.js`, `js/app.js` | As quatro abas e a casca (estado, velocidade, alarmes) |
+
+## Apresentação (10 slides)
+
+A 5ª aba "▶ Apresentação" abre o deck (`#slides` ou `#slides=N`). Setas ←/→ trocam de slide; cada slide tem "Abrir Aba do Simulador deste Slide" e "Mostrar/Ocultar Fala (Roteiro)" (oculta por padrão). O conteúdo está em `js/slides.js`.

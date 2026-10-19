@@ -190,3 +190,42 @@ table.matrix td:first-child, table.matrix th:first-child { text-align: left; whi
 .tags { display: flex; flex-wrap: wrap; gap: 4px; }
 .tag { padding: 1px 7px; font-family: var(--mono); font-size: 13px; border: 1px solid #000; background: #bfe3bf; }
 .tag.no { background: #f3b9b9; }
+
+/* ===== Deck de apresentação (aba 5) ===== */
+#tabs .tab.hl { background: #ffd24a; color: #000; margin-left: 14px; border-color: #fff #404040 transparent #fff; }
+#tabs .tab.hl.active { background: #ffe58a; color: #000080; }
+.sl-root { display: flex; flex-direction: column; gap: 8px; height: 100%; }
+.sl-stage { flex: 1; min-height: 0; overflow: auto; background: #f4f2ee; border: 2px solid; border-color: var(--chassis-dark) #fff #fff var(--chassis-dark); padding: 14px 22px; }
+.sl-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.sl-tag { font-weight: bold; font-size: 15px; color: #fff; padding: 3px 12px; border-radius: 3px; }
+.sl-tag.i1 { background: #1a6e6e; } .sl-tag.i2 { background: #1c4f9c; } .sl-tag.i3 { background: #8a5a00; } .sl-tag.i4 { background: #7a2b6f; }
+.sl-aula { font-weight: bold; font-size: 15px; color: #000080; }
+.sl-num { margin-left: auto; font-size: 14px; color: #404040; }
+.sl-title { margin: 4px 0 2px; font-size: 32px; color: #000; }
+.sl-sub { font-size: 17px; color: #404040; margin-bottom: 12px; }
+.sl-formula { font-family: var(--mono); font-size: 25px; font-weight: bold; text-align: center; color: #00ff66; background: #000; border: 3px solid; border-color: var(--chassis-dark) #fff #fff var(--chassis-dark); padding: 14px 16px; margin-bottom: 14px; line-height: 1.35; }
+.sl-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sl-card { font-size: 18px; }
+.sl-card .cardtitle { font-size: 20px; }
+.sl-ul { margin: 0; padding-left: 22px; line-height: 1.55; }
+.sl-ul li { margin: 5px 0; }
+table.sl-table { width: 100%; font-size: 19px; }
+table.sl-table th { font-size: 17px; }
+table.sl-table td { padding: 8px 10px; }
+table.sl-table td.k { font-weight: bold; color: #000080; }
+table.sl-table.compact { font-size: 15px; } table.sl-table.compact td { padding: 5px 8px; } table.sl-table.compact th { font-size: 14px; }
+.sl-fala { margin-top: 14px; padding: 10px 16px; background: #fff8c6; border: 2px dashed #c98a00; font-size: 17px; }
+.sl-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sl-dots { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.sl-dot { font: bold 14px var(--font); width: 34px; height: 34px; background: #d4d0c8; border: 2px solid; border-color: #fff var(--chassis-dark) var(--chassis-dark) #fff; cursor: pointer; }
+.sl-dot.on { background: #4d7373; color: #fff; border-color: var(--chassis-dark) #fff #fff var(--chassis-dark); }
+.sl-fala-btn { opacity: .75; font-size: 13px; }
+.btn:disabled { opacity: .4; cursor: default; }
+@media (max-width: 1100px) { .sl-two { grid-template-columns: 1fr; } }
+
+.sl-formula { white-space: pre-wrap; }
+.sl-bar .btn { width: auto; flex: 0 0 auto; padding: 10px 18px; }
+.sl-card { font-size: 23px; } .sl-card .cardtitle { font-size: 25px; } .sl-ul li { margin: 9px 0; }
+table.sl-table { font-size: 23px; } table.sl-table th { font-size: 19px; } table.sl-table td { padding: 12px 12px; }
+table.sl-table.compact { font-size: 17px; } table.sl-table.compact td { padding: 7px 10px; } table.sl-table.compact th { font-size: 16px; }
+.sl-fala { font-size: 19px; } .sl-title { font-size: 36px; } .sl-sub { font-size: 20px; }
