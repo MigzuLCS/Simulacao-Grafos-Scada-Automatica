@@ -22,10 +22,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Verificações numéricas das Aulas 11-18 e do motor
+      - name: Verificações numéricas das Aulas 11-18, do motor e da Aula 23
         run: |
           node simulacao-grafos/tests/check.mjs
           node simulacao-grafos/tests/plant.mjs
+          node simulacao-arvores/tests/check.mjs
 
   deploy:
     needs: test
@@ -36,13 +37,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      - name: Montar o site (página inicial + as duas simulações)
+      - name: Montar o site (página inicial + as simulações)
         run: |
           mkdir _site
           cp index.html _site/index.html
           cp -r simulador _site/simulador
           cp -r simulacao-grafos _site/simulacao-grafos
-          rm -rf _site/simulacao-grafos/tests
+          cp -r simulacao-arvores _site/simulacao-arvores
+          rm -rf _site/simulacao-grafos/tests _site/simulacao-arvores/tests
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./_site
