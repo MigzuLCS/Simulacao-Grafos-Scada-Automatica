@@ -1,4 +1,4 @@
-// Verifica que a simulação reproduz os números das Aulas 19, 20 e 23 e o acoplamento rede → CLP da planta.
+// Verifica que a simulação reproduz os números das Aulas 19 a 23 e o acoplamento rede → CLP da planta.
 // Uso (a partir da raiz do repositório): node simulacao-arvores/tests/check.mjs
 import assert from 'node:assert/strict';
 import { SWITCHES, ENLACES, montarRede, executarRSTP, numeroCiclomatico, gargaloMbps, kruskal, peso, distanciasNaArvore } from '../js/rstp.js';
@@ -6,6 +6,8 @@ import { Rede, TIMEOUT_CLP } from '../js/rede.js';
 import { Plant } from '../../simulacao-grafos/js/plant.js';
 import { NOS, TRECHOS, kruskalPassos, primPassos, rompimento, total } from '../js/mst.js';
 import { construir, metricas, decodificar, EVENTOS } from '../js/huffman.js';
+import { SIS, GRAO, decidir, sorteador, sortearGrao, inserirComum, inserirAVL, altura, balanceada, passosBusca } from '../js/binarias.js';
+import { planejar, atalhos, comprimento, colideSegmento, PARTIDA, DESTINO } from '../js/rrt.js';
 
 let n = 0;
 const ok = (name, fn) => { fn(); n++; console.log('  ok  ' + name); };
@@ -41,6 +43,44 @@ ok('3 bits fixos → 1,532 bits; entropia 1,3838; economia 48,93 %; eficiência 
 ok('código de prefixo: decodificar a concatenação devolve a sequência original', () => {
   const seq = ['KXA-501', 'KXA-501', 'XA-901', 'KXA-502', 'ALR_PAL', 'KXA-503', ...EVENTOS.map(e => e.tag)];
   assert.deepEqual(decodificar(HF.raiz, seq.map(t => HF.codigos[t]).join('')), seq);
+});
+
+console.log('Aula 21 — árvores binárias');
+ok('SIS: sem falha → operação normal após 5 perguntas; falhas juntas → vale a mais grave', () => {
+  const n = decidir(SIS, {}); assert.equal(n.folha.estado, 'OPERAÇÃO NORMAL'); assert.equal(n.perguntas, 5); assert.deepEqual(n.folha.cmd, [1, 1, 1, 0]);
+  const r = decidir(SIS, { p_PAL601: 1, p_FALHA_CAM: 1 }); assert.equal(r.folha.estado, 'TRIP: AR BAIXO'); assert.equal(r.perguntas, 2);
+  assert.deepEqual(decidir(SIS, { p_FALHA_CAM: 1 }).folha.cmd, [1, 0, 0, 1]);   // câmera: esteira purga, alimentação para
+});
+ok('grão: regras do notebook (praga → C; 7,8 mm → C; 5,5 mm → B; 6,8 × 2,0 mm limpo → A)', () => {
+  const base = { praga: false, impureza: false, dano: false, comprimento: 6.8, largura: 2.0, corSecundaria: false };
+  assert.equal(decidir(GRAO, { ...base, praga: true }).folha.estado, 'C'); assert.equal(decidir(GRAO, { ...base, comprimento: 7.8 }).folha.estado, 'C');
+  assert.equal(decidir(GRAO, { ...base, comprimento: 5.5 }).folha.estado, 'B'); assert.equal(decidir(GRAO, { ...base, largura: 1.7 }).folha.estado, 'B');
+  const a = decidir(GRAO, base); assert.equal(a.folha.estado, 'A'); assert.equal(a.perguntas, 4);
+});
+ok('sorteio de grãos próximo da planta (≈ 75 % A, 15 % B, 10 % C)', () => {
+  const r = sorteador(7), c = { A: 0, B: 0, C: 0 }; for (let i = 0; i < 10000; i++) c[decidir(GRAO, sortearGrao(r)).folha.estado]++;
+  assert.ok(c.A > 7000 && c.A < 8200 && c.B > 1000 && c.B < 1800 && c.C > 700 && c.C < 1300, JSON.stringify(c));
+});
+ok('historiador: 2.500 amostras em ordem → árvore comum altura 2.500, AVL altura 12 e balanceada', () => {
+  let c = null, a = null; const t0 = 1774300000000;
+  for (let i = 0; i < 2500; i++) { c = inserirComum(c, t0 + i * 10); a = inserirAVL(a, t0 + i * 10); }
+  assert.equal(altura(c), 2500); assert.equal(altura(a), 12); assert.ok(balanceada(a));
+  assert.equal(passosBusca(c, t0 + 24990), 2500); assert.ok(passosBusca(a, t0 + 24990) <= 12);
+});
+
+console.log('Aula 22 — RRT e RRT* no galpão');
+ok('em 20 sorteios: rota sempre encontrada, sem colisão, RRT* ≤ RRT e atalhos ≤ RRT*; nunca abaixo da linha reta (47,2 m)', () => {
+  const reta = Math.hypot(DESTINO[0] - PARTIDA[0], DESTINO[1] - PARTIDA[1]);
+  for (let sem = 1; sem <= 20; sem++) {
+    const r = planejar({ semente: sem }), e = planejar({ semente: sem, estrela: true }), a = atalhos(e.caminho);
+    assert.ok(r.caminho && e.caminho, 'sem rota na semente ' + sem);
+    for (const c of [r.caminho, e.caminho, a]) for (let i = 1; i < c.length; i++) assert.ok(!colideSegmento(c[i - 1], c[i]), 'colisão semente ' + sem);
+    assert.ok(e.comprimento <= r.comprimento + 1e-9 && comprimento(a) <= e.comprimento + 1e-9 && comprimento(a) >= reta - 1e-9, 'semente ' + sem);
+  }
+});
+ok('semente 7 (a da apresentação): 66,6 m → 53,8 m → 51,1 m', () => {
+  const r = planejar({ semente: 7 }), e = planejar({ semente: 7, estrela: true });
+  assert.equal(r.comprimento.toFixed(1), '66.6'); assert.equal(e.comprimento.toFixed(1), '53.8'); assert.equal(comprimento(atalhos(e.caminho)).toFixed(1), '51.1');
 });
 
 console.log('Aula 23 — operação normal');

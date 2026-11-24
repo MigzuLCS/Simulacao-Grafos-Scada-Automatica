@@ -2,6 +2,7 @@
 import { h, $, clear } from '../../simulacao-grafos/js/dom.js';
 import { Plant } from '../../simulacao-grafos/js/plant.js';
 import { createTab1 } from './tab1.js';
+import { createTab2 } from './tab2.js';
 import { createTab3 } from './tab3.js';
 import { abaEmPreparacao } from './preparacao.js';
 
@@ -49,10 +50,7 @@ function frame(now) {
 app.plant.quickStart(); app.fastForward(300);
 app.tabs = [
   createTab1(app),
-  abaEmPreparacao('Aulas 21–22 · Árvores Binárias e Rapidly-exploring Random Trees', 'Aulas 21–22', [
-    'Árvore binária de busca das tags ISA-5.1 (inserção, busca e percursos).',
-    'RRT crescendo no layout da planta para planejar a rota de um robô/AGV desviando de obstáculos.',
-  ]),
+  createTab2(app),
   createTab3(app),
   abaEmPreparacao('Aula 24 · Árvore de Atingibilidade e Cobertura em Redes de Petri', 'Aula 24', [
     'Jogo de fichas do ciclo do ejetor C (EJE-603): disparo c_FY603, confirmação ZSH-601 e falha p_FALHA_EJETOR.',
