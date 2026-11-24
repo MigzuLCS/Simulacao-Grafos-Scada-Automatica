@@ -1,6 +1,7 @@
 /** app.js — casca da simulação da Etapa 03 (Árvores): 4 abas (uma por integrante) sobre a mesma planta da Etapa 02. */
 import { h, $, clear } from '../../simulacao-grafos/js/dom.js';
 import { Plant } from '../../simulacao-grafos/js/plant.js';
+import { createTab1 } from './tab1.js';
 import { createTab3 } from './tab3.js';
 import { abaEmPreparacao } from './preparacao.js';
 
@@ -47,10 +48,7 @@ function frame(now) {
 /* ---------------------------------------------------------------- inicialização */
 app.plant.quickStart(); app.fastForward(300);
 app.tabs = [
-  abaEmPreparacao('Aulas 19–20 · Kruskal/Prim e Codificação de Huffman', 'Aulas 19–20', [
-    'Kruskal e Prim lado a lado montando a MST do cabeamento (11 nós, 37,8 m), com a contingência N−1 e a segunda melhor árvore.',
-    'Árvore de Huffman dos códigos de alarme/telemetria, mostrando a compressão em bits.',
-  ]),
+  createTab1(app),
   abaEmPreparacao('Aulas 21–22 · Árvores Binárias e Rapidly-exploring Random Trees', 'Aulas 21–22', [
     'Árvore binária de busca das tags ISA-5.1 (inserção, busca e percursos).',
     'RRT crescendo no layout da planta para planejar a rota de um robô/AGV desviando de obstáculos.',

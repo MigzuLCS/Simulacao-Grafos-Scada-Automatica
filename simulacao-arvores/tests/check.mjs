@@ -1,14 +1,47 @@
-// Verifica que a simulação reproduz os números do notebook da Aula 23 e o acoplamento rede → CLP da planta.
+// Verifica que a simulação reproduz os números das Aulas 19, 20 e 23 e o acoplamento rede → CLP da planta.
 // Uso (a partir da raiz do repositório): node simulacao-arvores/tests/check.mjs
 import assert from 'node:assert/strict';
 import { SWITCHES, ENLACES, montarRede, executarRSTP, numeroCiclomatico, gargaloMbps, kruskal, peso, distanciasNaArvore } from '../js/rstp.js';
 import { Rede, TIMEOUT_CLP } from '../js/rede.js';
 import { Plant } from '../../simulacao-grafos/js/plant.js';
+import { NOS, TRECHOS, kruskalPassos, primPassos, rompimento, total } from '../js/mst.js';
+import { construir, metricas, decodificar, EVENTOS } from '../js/huffman.js';
 
 let n = 0;
 const ok = (name, fn) => { fn(); n++; console.log('  ok  ' + name); };
 const todos = () => new Set(SWITCHES.map(s => s.nome));
 const cabos = (...fora) => new Set(ENLACES.map(e => e.id).filter(id => !fora.includes(id)));
+
+console.log('Aula 19 — Kruskal e Prim no cabeamento');
+const K = kruskalPassos(), mstIds = K.filter(p => p.aceito).map(p => p.trecho.id);
+ok('11 nós, 19 trechos, 100,4 m no total', () => { assert.equal(NOS.length, 11); assert.equal(TRECHOS.length, 19); assert.equal(total(TRECHOS.map(t => t.id)), 100.4); });
+ok('Kruskal: 10 trechos, 37,8 m; único recusado antes de completar = EJE-602 — COMP-601 (4,7 m)', () => {
+  assert.equal(mstIds.length, 10); assert.equal(total(mstIds), 37.8);
+  const rec = K.filter(p => !p.aceito); assert.equal(rec.length, 1); assert.equal(rec[0].trecho.m, 4.7);
+});
+ok('Prim a partir do CLP: mesma árvore e mesma ordem da Seção 5.2', () => {
+  const P = primPassos();
+  assert.deepEqual(P.map(p => p.trecho.id).sort(), [...mstIds].sort());
+  assert.deepEqual(P.map(p => p.novo.split('_')[0]), ['SEG-901', 'FN-101', 'ALIM-101', 'EST-201', 'BAL-301', 'VIS-401', 'EJE-602', 'EJE-603', 'COMP-601', 'SILOS-700']);
+});
+ok('N−1: romper EJE-603 — COMP-601 isola a central de ar; religa por 4,7 m → 38,2 m', () => {
+  const id = TRECHOS.find(t => t.a === 'EJE-603_EstacaoC' && t.b === 'COMP-601_Pneumatica').id, r = rompimento(mstIds, id);
+  assert.deepEqual(r.isolados, ['COMP-601_Pneumatica']); assert.equal(r.religa.m, 4.7); assert.equal(r.comprimento, 38.2);
+});
+
+console.log('Aula 20 — Huffman dos eventos do historiador');
+const HF = construir(), MT = metricas(HF.codigos);
+ok('códigos iguais aos da tabela da Seção 3.1', () => {
+  assert.deepEqual(HF.codigos, { 'KXA-501': '1', 'KXA-502': '01', 'KXA-503': '000', 'XS-401': '0011', ALR_NA: '00100', ALR_PAL: '001011', ALR_JI: '0010101', 'XA-901': '0010100' });
+});
+ok('3 bits fixos → 1,532 bits; entropia 1,3838; economia 48,93 %; eficiência 90,33 %', () => {
+  assert.equal(MT.fixo, 3); assert.ok(Math.abs(MT.medio - 1.532) < 1e-9); assert.equal(MT.bitsHuffman, 1532);
+  assert.equal(MT.H.toFixed(4), '1.3838'); assert.equal((MT.economia * 100).toFixed(2), '48.93'); assert.equal((MT.eficiencia * 100).toFixed(2), '90.33');
+});
+ok('código de prefixo: decodificar a concatenação devolve a sequência original', () => {
+  const seq = ['KXA-501', 'KXA-501', 'XA-901', 'KXA-502', 'ALR_PAL', 'KXA-503', ...EVENTOS.map(e => e.tag)];
+  assert.deepEqual(decodificar(HF.raiz, seq.map(t => HF.codigos[t]).join('')), seq);
+});
 
 console.log('Aula 23 — operação normal');
 const r0 = montarRede(todos(), cabos()), t0 = executarRSTP(r0);

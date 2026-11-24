@@ -4,7 +4,7 @@ Quatro abas, uma por integrante, sobre a mesma planta de classificação de grã
 
 | Aba | Conteúdo | Situação |
 | :-- | :-- | :-- |
-| 1 · Kruskal/Prim e Huffman (Aulas 19–20) | — | em preparação |
+| 1 · Kruskal/Prim e Huffman (Aulas 19–20) | Aula 19: todos os trechos (100,4 m), Kruskal e Prim animados (37,8 m) e o rompimento de um cabo da árvore (38,2 m). Aula 20: frequência das mensagens, montagem da árvore de Huffman passo a passo e os códigos (3 → 1,53 bits, −48,9 %) | pronta |
 | 2 · Árvores Binárias e RRT (Aulas 21–22) | — | em preparação |
 | 3 · Rede STP/RSTP (Aula 23) | Cinco cenários em linguagem simples: rede normal (2 cabos de reserva), cabo da câmera rompe com RSTP (linha segue) e com STP (linha para), sem protocolo (tempestade) e RSTP × MST da Aula 19. Caixa "detalhes técnicos" mostra portas RP/DP/AP e custos | pronta |
 | 4 · Redes de Petri (Aula 24) | — | em preparação |
@@ -16,16 +16,18 @@ Os módulos ES não carregam por `file://`. Na raiz do repositório:
 python -m http.server 8000      # depois abra http://localhost:8000/simulacao-arvores/
 ```
 
-Links diretos: `#tab=1..4&mode=...&scale=5`. Modos da aba 3: `normal|rstp|stp|semstp|mst`. O tempo simulado corre `scale` vezes mais rápido que o real (padrão 5: os 30 s do STP passam em 6 s).
+Links diretos: `#tab=1..4&mode=...&scale=5`. Modos — aba 1: `mst|huff|todos|kruskal|prim|falha|freq|montar|codigos`; aba 3: `normal|rstp|stp|semstp|mst`. O tempo simulado corre `scale` vezes mais rápido que o real (padrão 5: os 30 s do STP passam em 6 s).
 
 ## Testes
 ```bash
-node simulacao-arvores/tests/check.mjs   # 13 verificações: números do notebook da Aula 23, reconvergência e desarme da planta
+node simulacao-arvores/tests/check.mjs   # 20 verificações: números das Aulas 19, 20 e 23, reconvergência e desarme da planta
 ```
 
 ## Arquivos
 | Arquivo | Papel |
 | :-- | :-- |
+| `js/mst.js`, `js/huffman.js` | Dados e algoritmos das Aulas 19 (Kruskal, Prim, rompimento) e 20 (Huffman, métricas, decodificação) |
+| `js/tab1.js` | Aba das Aulas 19–20 |
 | `js/rstp.js` | Topologia da Aula 23, convergência distribuída por BPDUs, papéis de porta, Kruskal |
 | `js/rede.js` | Rede viva: falhas, reconvergência STP/RSTP no tempo simulado, tempestade, alcance CLP ↔ câmera |
 | `js/redeview.js` | Desenho SVG da rede |
