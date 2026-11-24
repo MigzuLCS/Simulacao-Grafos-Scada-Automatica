@@ -6,7 +6,7 @@ Quatro abas, uma por integrante, sobre a mesma planta de classificação de grã
 | :-- | :-- | :-- |
 | 1 · Kruskal/Prim e Huffman (Aulas 19–20) | — | em preparação |
 | 2 · Árvores Binárias e RRT (Aulas 21–22) | — | em preparação |
-| 3 · Rede STP/RSTP (Aula 23) | Árvore geradora ativa da rede de 6 switches, papéis de porta RP/DP/AP, rompimento da fibra da câmera com RSTP (0,2 s, linha segue) e STP (30 s, TRIP por `p_KSA401`), tempestade sem STP, RSTP × MST de Kruskal e teste N−1 | pronta |
+| 3 · Rede STP/RSTP (Aula 23) | Cinco cenários em linguagem simples: rede normal (2 cabos de reserva), cabo da câmera rompe com RSTP (linha segue) e com STP (linha para), sem protocolo (tempestade) e RSTP × MST da Aula 19. Caixa "detalhes técnicos" mostra portas RP/DP/AP e custos | pronta |
 | 4 · Redes de Petri (Aula 24) | — | em preparação |
 
 ## Executar
@@ -16,7 +16,7 @@ Os módulos ES não carregam por `file://`. Na raiz do repositório:
 python -m http.server 8000      # depois abra http://localhost:8000/simulacao-arvores/
 ```
 
-Links diretos: `#tab=1..4&mode=...&scale=5`. Modos da aba 3: `normal|rstp|stp|semstp|mst|n1`. O tempo simulado corre `scale` vezes mais rápido que o real (padrão 5: os 30 s do STP passam em 6 s).
+Links diretos: `#tab=1..4&mode=...&scale=5`. Modos da aba 3: `normal|rstp|stp|semstp|mst`. O tempo simulado corre `scale` vezes mais rápido que o real (padrão 5: os 30 s do STP passam em 6 s).
 
 ## Testes
 ```bash

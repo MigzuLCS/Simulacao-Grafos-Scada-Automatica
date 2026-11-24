@@ -62,7 +62,7 @@ export class RedeView {
       g.append(rect, nome, eq, info, tip);
       if (o.onSwitch) g.addEventListener('click', () => o.onSwitch(sw.nome));
       gN.append(g);
-      this.nr[sw.nome] = { sw, rect, info, tip };
+      this.nr[sw.nome] = { sw, rect, eq, info, tip };
     }
     this.aviso = s('text', { x: 20, y: H - 14, style: { font: 'bold 24px var(--font)', fill: '#ffeb3b' } });
     this.svg.append(this.aviso);
@@ -70,11 +70,12 @@ export class RedeView {
 
   /**
    * @param {import('./rede.js').Rede} rede
-   * @param {{destaque?:Set<string>, arvore?:object, mostrarPapeis?:boolean}} [opt] destaque = enlaces pintados de amarelo (comparação com a MST)
+   * @param {{destaque?:Set<string>, arvore?:object, mostrarPapeis?:boolean, detalhes?:boolean}} [opt]
+   *   destaque = enlaces pintados de amarelo (comparação com a MST); detalhes = mostra portas RP/DP/AP, custos d(v) e velocidades
    */
   render(rede, opt = {}) {
     const tempestade = rede.tempestade(), alc = rede.alcancaveis(), piscar = Math.floor(performance.now() / 250) % 2 === 0;
-    const arv = opt.arvore || rede.arvore, papeis = opt.mostrarPapeis !== false && rede.protocolo !== 'NENHUM';
+    const arv = opt.arvore || rede.arvore, det = !!opt.detalhes, papeis = det && opt.mostrarPapeis !== false && rede.protocolo !== 'NENHUM';
     for (const id in this.er) {
       const { e, line, bg, txt, portas, tip } = this.er[id];
       const vivo = rede.enlacesOk.has(id) && rede.switchesOk.has(e.a) && rede.switchesOk.has(e.b);
@@ -87,8 +88,13 @@ export class RedeView {
       else if (fwd) { cor = COR.fwd; traco = 'none'; }
       else if (rede.transicao && rede.transicao.nova.estado[id] === 'Forwarding') { cor = COR.trans; traco = '10 6'; }
       line.setAttribute('stroke', cor); line.setAttribute('stroke-width', giga ? 11 : 6); line.setAttribute('stroke-dasharray', traco);
-      txt.textContent = vivo ? `${id} ${giga ? '1G' : '100M'}` : `${id} ✂`;
-      txt.style.fill = !vivo ? '#bbb' : opt.destaque ? (opt.destaque.has(id) ? '#ffff00' : '#ccc') : fwd ? '#00ff00' : '#ff6b6b';
+      const ligando = rede.transicao && rede.transicao.nova.estado[id] === 'Forwarding' && !fwd;
+      const rotulo = det ? (vivo ? `${id} ${giga ? '1G' : '100M'}` : `${id} ✂`)
+        : !vivo ? '✂ rompido' : (opt.destaque || tempestade || fwd) ? '' : ligando ? 'ligando…' : 'reserva';
+      txt.textContent = rotulo;
+      const larg = rotulo.length * 9.5 + 18;
+      bg.setAttribute('width', larg); bg.setAttribute('x', (+txt.getAttribute('x')) - larg / 2); bg.style.display = txt.style.display = rotulo ? '' : 'none';
+      txt.style.fill = !vivo ? '#bbb' : opt.destaque ? (opt.destaque.has(id) ? '#ffff00' : '#ccc') : fwd ? '#00ff00' : ligando ? '#ffaa00' : '#ff6b6b';
       tip.textContent = `${id}: ${e.a} — ${e.b} (${e.velocidade}). Clique para ${rede.enlacesOk.has(id) ? 'romper' : 'reparar'}.`;
       for (const p of portas) {
         const papel = vivo && papeis && !opt.destaque ? arv.papeis[`${id}|${p.sw}`] : null;
@@ -97,15 +103,18 @@ export class RedeView {
       }
     }
     for (const nome in this.nr) {
-      const { sw, rect, info, tip } = this.nr[nome];
+      const { sw, rect, eq, info, tip } = this.nr[nome];
       const ok = rede.switchesOk.has(nome), raiz = ok && rede.protocolo !== 'NENHUM' && arv.raizDe[nome] === nome;
       rect.setAttribute('fill', !ok ? COR.falho : raiz ? COR.raiz : (!alc.has(nome) && !opt.destaque) ? COR.isolado : COR.ok);
       rect.setAttribute('stroke-dasharray', ok ? 'none' : '7 5');
       const d = arv.custo[nome];
-      info.textContent = !ok ? 'FORA DE OPERAÇÃO' : raiz ? `ROOT · prio ${sw.prioridade}` : `d = ${d.toLocaleString('pt-BR')}`;
+      eq.textContent = det ? sw.equipamentos : sw.zona;
+      info.textContent = !ok ? 'FORA DE OPERAÇÃO'
+        : det ? (raiz ? `ROOT · prio ${sw.prioridade}` : `d = ${d.toLocaleString('pt-BR')}`)
+        : raiz ? 'RAIZ DA ÁRVORE' : (!alc.has(nome) && !opt.destaque) ? 'SEM CONEXÃO' : '';
       tip.textContent = `${nome} — ${sw.zona}. Bridge ID ${sw.prioridade}/${sw.mac}. Clique para ${ok ? 'simular falha' : 'restaurar'}.`;
     }
-    this.aviso.textContent = opt.destaque ? '' : tempestade ? '⚠ TEMPESTADE DE BROADCAST'
-      : rede.transicao ? `${rede.protocolo} reconvergindo… ${rede.transicao.restante.toFixed(rede.transicao.total < 1 ? 2 : 1)} s` : '';
+    this.aviso.textContent = opt.destaque ? '' : tempestade ? '⚠ Tempestade: a rede travou'
+      : rede.transicao ? `Rede se refazendo… ${rede.transicao.restante.toFixed(rede.transicao.total < 1 ? 2 : 1)} s` : '';
   }
 }
