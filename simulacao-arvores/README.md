@@ -7,7 +7,7 @@ Quatro abas, uma por integrante, sobre a mesma planta de classificação de grã
 | 1 · Kruskal/Prim e Huffman (Aulas 19–20) | Aula 19: todos os trechos (100,4 m), Kruskal e Prim animados (37,8 m) e o rompimento de um cabo da árvore (38,2 m). Aula 20: frequência das mensagens, montagem da árvore de Huffman passo a passo e os códigos (3 → 1,53 bits, −48,9 %) | pronta |
 | 2 · Árvores Binárias e RRT (Aulas 21–22) | Aula 21: árvore de segurança (botões de falha acendem o caminho), árvore do túnel de visão (grãos sorteados, ≈ 75/15/10 %) e historiador com árvore comum × AVL (altura 15 × 4; com 2.500 amostras, 2.500 × 12). Aula 22: RRT crescendo no galpão, RRT* religando e atalhos (semente 7: 66,6 → 53,8 → 51,1 m), com botão de novo sorteio | pronta |
 | 3 · Rede STP/RSTP (Aula 23) | Cinco cenários em linguagem simples: rede normal (2 cabos de reserva), cabo da câmera rompe com RSTP (linha segue) e com STP (linha para), sem protocolo (tempestade) e RSTP × MST da Aula 19. Caixa "detalhes técnicos" mostra portas RP/DP/AP e custos | pronta |
-| 4 · Redes de Petri (Aula 24) | — | em preparação |
+| 4 · Redes de Petri (Aula 24) | Ciclo do ejetor C com fichas (clique nas transições ou rode sozinho), árvore de atingibilidade (4 estados, sem deadlock), árvore de cobertura com ω no Silo C e a correção com o lugar complementar (K = 3: 14 estados, sem ω, invariantes) | pronta (modelo das orientações do grupo; conferir quando a Aula 24 for publicada) |
 
 ## Executar
 Os módulos ES não carregam por `file://`. Na raiz do repositório:
@@ -16,11 +16,11 @@ Os módulos ES não carregam por `file://`. Na raiz do repositório:
 python -m http.server 8000      # depois abra http://localhost:8000/simulacao-arvores/
 ```
 
-Links diretos: `#tab=1..4&mode=...&scale=5`. Modos — aba 1: `mst|huff|todos|kruskal|prim|falha|freq|montar|codigos`; aba 2: `bin|rrt|sis|grao|avl|estrela|atalho`; aba 3: `normal|rstp|stp|semstp|mst`. O tempo simulado corre `scale` vezes mais rápido que o real (padrão 5: os 30 s do STP passam em 6 s).
+Links diretos: `#tab=1..4&mode=...&scale=5`. Modos — aba 1: `mst|huff|todos|kruskal|prim|falha|freq|montar|codigos`; aba 2: `bin|rrt|sis|grao|avl|estrela|atalho`; aba 4: `fichas|ating|cober|cap`; aba 3: `normal|rstp|stp|semstp|mst`. O tempo simulado corre `scale` vezes mais rápido que o real (padrão 5: os 30 s do STP passam em 6 s).
 
 ## Testes
 ```bash
-node simulacao-arvores/tests/check.mjs   # 26 verificações: números das Aulas 19 a 23, reconvergência e desarme da planta
+node simulacao-arvores/tests/check.mjs   # 30 verificações: números das Aulas 19 a 24, reconvergência e desarme da planta
 ```
 
 ## Arquivos
@@ -34,4 +34,5 @@ node simulacao-arvores/tests/check.mjs   # 26 verificações: números das Aulas
 | `js/rede.js` | Rede viva: falhas, reconvergência STP/RSTP no tempo simulado, tempestade, alcance CLP ↔ câmera |
 | `js/redeview.js` | Desenho SVG da rede |
 | `js/tab3.js` | Aba da Aula 23 e acoplamento com o CLP (`plant.setFault('ksa401')`) |
-| `js/preparacao.js`, `js/app.js` | Abas reservadas e a casca (abas, laço de simulação, links diretos) |
+| `js/petri.js`, `js/tab4.js` | Aula 24: rede de Petri, Karp-Miller, propriedades e invariantes; aba da Aula 24 |
+| `js/app.js` | A casca (abas, laço de simulação, links diretos) |

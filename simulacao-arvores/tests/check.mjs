@@ -1,4 +1,4 @@
-// Verifica que a simulação reproduz os números das Aulas 19 a 23 e o acoplamento rede → CLP da planta.
+// Verifica que a simulação reproduz os números das Aulas 19 a 24 e o acoplamento rede → CLP da planta.
 // Uso (a partir da raiz do repositório): node simulacao-arvores/tests/check.mjs
 import assert from 'node:assert/strict';
 import { SWITCHES, ENLACES, montarRede, executarRSTP, numeroCiclomatico, gargaloMbps, kruskal, peso, distanciasNaArvore } from '../js/rstp.js';
@@ -8,6 +8,7 @@ import { NOS, TRECHOS, kruskalPassos, primPassos, rompimento, total } from '../j
 import { construir, metricas, decodificar, EVENTOS } from '../js/huffman.js';
 import { SIS, GRAO, decidir, sorteador, sortearGrao, inserirComum, inserirAVL, altura, balanceada, passosBusca } from '../js/binarias.js';
 import { planejar, atalhos, comprimento, colideSegmento, PARTIDA, DESTINO } from '../js/rrt.js';
+import { rede as redePetri, propriedades, habilitada, disparar, invarianteEjetor, invarianteSilo, OMEGA } from '../js/petri.js';
 
 let n = 0;
 const ok = (name, fn) => { fn(); n++; console.log('  ok  ' + name); };
@@ -142,6 +143,31 @@ ok('sem STP com ciclos: tempestade, câmera inalcançável; sem ciclos (romper e
   assert.equal(r.tempestade(), true); assert.equal(sim(r, 1), true);
   r.alternarEnlace('e1'); assert.equal(r.tempestade(), true); r.alternarEnlace('e6'); assert.equal(r.tempestade(), false);
   assert.equal(r.cameraAlcancavel(), true);
+});
+
+console.log('Aula 24 — redes de Petri do ejetor C e do Silo C');
+ok('Parte A: árvore de atingibilidade com 6 nós (2 repetidos), 4 estados, segura (1 ficha), sem deadlock', () => {
+  const pr = propriedades(redePetri('A'));
+  assert.equal(pr.arvore.length, 6); assert.equal(pr.arvore.filter(n => n.dup).length, 2); assert.equal(pr.marcacoes.length, 4);
+  assert.equal(pr.limite, 1); assert.equal(pr.deadlocks.length, 0); assert.equal(pr.temOmega, false);
+  assert.ok(pr.marcacoes.every(M => !(M[2] === 1 && M[3] === 1)));        // pistão avançando e falha nunca juntos
+});
+ok('Parte B (sem descarga): árvore de cobertura com 8 estados e ω no Silo C', () => {
+  const pr = propriedades(redePetri('B'));
+  assert.equal(pr.marcacoes.length, 8); assert.ok(pr.temOmega); assert.ok(pr.marcacoes.some(M => M[4] === OMEGA)); assert.equal(pr.deadlocks.length, 0);
+});
+ok('Parte C (K = 3): 14 estados, sem ω, sem deadlock, invariantes do ejetor (=1) e do silo (=3)', () => {
+  const pr = propriedades(redePetri('C', 3));
+  assert.equal(pr.marcacoes.length, 14); assert.equal(pr.temOmega, false); assert.equal(pr.deadlocks.length, 0); assert.equal(pr.limite, 3);
+  assert.ok(pr.marcacoes.every(M => invarianteEjetor(M) === 1 && invarianteSilo(M) === 3));
+  assert.deepEqual(pr.marcacoes.filter(M => M[1] === 1 && M[5] === 0), [[0, 1, 0, 0, 3, 0]]);   // o achado de projeto
+  assert.equal(propriedades(redePetri('C', 2)).marcacoes.length, 10);
+});
+ok('disparo: t2 só com espaço no silo; falha (t4) devolve o espaço reservado', () => {
+  const n = redePetri('C', 1), t = id => n.transicoes.find(x => x.id === id);
+  let M = disparar(t('t1'), n.M0); M = disparar(t('t2'), M); assert.deepEqual(M, [0, 0, 1, 0, 0, 0]);
+  const falha = disparar(t('t4'), M); assert.deepEqual(falha, [0, 0, 0, 1, 0, 1]);
+  M = disparar(t('t3'), M); M = disparar(t('t1'), M); assert.equal(habilitada(t('t2'), M), false);   // silo cheio: não dispara
 });
 
 console.log('Acoplamento com o CLP da planta (Etapa 02)');

@@ -4,7 +4,7 @@ import { Plant } from '../../simulacao-grafos/js/plant.js';
 import { createTab1 } from './tab1.js';
 import { createTab2 } from './tab2.js';
 import { createTab3 } from './tab3.js';
-import { abaEmPreparacao } from './preparacao.js';
+import { createTab4 } from './tab4.js';
 
 const app = {
   plant: new Plant(), scale: 5, tabs: [], active: 0,
@@ -52,10 +52,7 @@ app.tabs = [
   createTab1(app),
   createTab2(app),
   createTab3(app),
-  abaEmPreparacao('Aula 24 · Árvore de Atingibilidade e Cobertura em Redes de Petri', 'Aula 24', [
-    'Jogo de fichas do ciclo do ejetor C (EJE-603): disparo c_FY603, confirmação ZSH-601 e falha p_FALHA_EJETOR.',
-    'Árvore de cobertura com ω no Silo C e a correção com lugar complementar (capacidade K = 3, sem ω e sem deadlock).',
-  ]),
+  createTab4(app),
 ];
 const host = $('#screens');
 app.tabs.forEach(t => { t.root = h('div', { class: 'screen' }, t.el); host.append(t.root); });
